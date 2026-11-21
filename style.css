@@ -16,8 +16,17 @@
   --warn: #b25000;
   --err: #d70015;
   --radius: 20px;
+  --squircle-r: 20px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.04), 0 6px 18px rgba(0,0,0,.05);
   --shadow-lg: 0 2px 8px rgba(0,0,0,.05), 0 24px 60px rgba(0,0,0,.09);
+
+  /* 玻璃卡片：高斯模糊 + 高光描边 */
+  --glass-blur: 32px;
+  --glass-sat: 180%;
+  --card-bg: rgba(255, 255, 255, 0.55);
+  --card-bg-hover: rgba(255, 255, 255, 0.72);
+  --card-stroke: rgba(255, 255, 255, 0.55);
+  --card-inner: inset 0 1px 0 rgba(255, 255, 255, 0.75);
   --ease: cubic-bezier(.22,.61,.36,1);
 }
 
@@ -40,6 +49,12 @@
     --err: #ff453a;
     --shadow-sm: 0 1px 2px rgba(0,0,0,.5), 0 6px 18px rgba(0,0,0,.4);
     --shadow-lg: 0 2px 8px rgba(0,0,0,.6), 0 24px 60px rgba(0,0,0,.6);
+
+    --glass-blur: 34px;
+    --card-bg: rgba(28, 28, 30, 0.5);
+    --card-bg-hover: rgba(38, 38, 40, 0.66);
+    --card-stroke: rgba(255, 255, 255, 0.12);
+    --card-inner: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   }
 }
 
@@ -47,6 +62,14 @@
 
 /* [hidden] 必须压过 .format-row 等 display 规则 */
 [hidden] { display: none !important; }
+
+/* G2 连续曲率圆角：原生支持就用浏览器实现（零成本），
+   否则由 squircle.js 用超椭圆 clip-path 兜底。
+   border-radius 始终保留，作为两者都不可用时的回退。 */
+.drop, .format, .card, .btn, .badge, .seg, .seg-btn, .select {
+  corner-shape: squircle;          /* 老语法：只认 squircle 的版本会用这个（等于 n=2） */
+  corner-shape: superellipse(4);   /* n=4：曲率从直边 0 平滑升到峰值再归零，真 G2 */
+}
 
 html { -webkit-text-size-adjust: 100%; }
 
@@ -139,17 +162,23 @@ body {
 .drop {
   position: relative;
   border-radius: 26px;
-  border: 1.5px dashed var(--stroke-strong);
-  background: var(--surface);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  box-shadow: var(--shadow-sm);
+  --squircle-r: 26px;
+  border: 1.5px dashed rgba(127, 127, 127, .35);
+  background: var(--card-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow: var(--shadow-sm), var(--card-inner);
   padding: clamp(30px, 6vw, 52px) 24px;
   text-align: center;
   cursor: pointer;
   transition: transform .3s var(--ease), border-color .3s var(--ease), background .3s var(--ease), box-shadow .3s var(--ease);
 }
-.drop:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+.drop:hover {
+  transform: translateY(-2px);
+  background: var(--card-bg-hover);
+  box-shadow: var(--shadow-lg), var(--card-inner);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
 .drop:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .drop.over { border-color: var(--accent); background: var(--accent-soft); transform: scale(1.008); }
 .drop-inner { display: flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -162,11 +191,12 @@ body {
   margin: 22px 0 0;
   padding: 16px 18px;
   border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--stroke);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  box-shadow: var(--shadow-sm);
+  --squircle-r: var(--radius);
+  background: var(--card-bg);
+  border: 1px solid var(--card-stroke);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow: var(--shadow-sm), var(--card-inner);
   display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center;
 }
 .format-row { display: flex; align-items: center; gap: 12px; }
@@ -174,8 +204,10 @@ body {
 
 .seg {
   display: inline-flex; padding: 3px; gap: 2px;
-  background: rgba(127, 127, 127, .13);
+  background: rgba(127, 127, 127, .12);
+  border: 1px solid var(--card-stroke);
   border-radius: 12px;
+  box-shadow: var(--card-inner);
 }
 .seg-btn {
   appearance: none; border: 0; background: transparent; cursor: pointer;
@@ -187,8 +219,10 @@ body {
 .seg-btn em { font-style: normal; font-size: 11.5px; opacity: .62; }
 .seg-btn:hover { color: var(--text); }
 .seg-btn.on {
-  background: var(--surface-solid); color: var(--text);
-  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06);
+  background: var(--card-bg-hover); color: var(--text);
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06), var(--card-inner);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
 }
 .seg-btn.on em { opacity: .55; }
 .seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -216,10 +250,11 @@ body {
 
 .btn {
   appearance: none;
-  border: 1px solid var(--stroke);
-  background: var(--surface);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--card-stroke);
+  background: var(--card-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow: var(--card-inner);
   color: var(--text);
   font: 500 14px/1 inherit;
   font-family: inherit;
@@ -229,7 +264,7 @@ body {
   transition: transform .18s var(--ease), background .18s var(--ease), opacity .18s var(--ease), border-color .18s var(--ease);
   white-space: nowrap;
 }
-.btn:hover:not(:disabled) { background: var(--surface-solid); transform: translateY(-1px); }
+.btn:hover:not(:disabled) { background: var(--card-bg-hover); transform: translateY(-1px); }
 .btn:active:not(:disabled) { transform: scale(.97); }
 .btn:disabled { opacity: .4; cursor: default; }
 .btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
@@ -246,12 +281,19 @@ body {
   gap: 16px;
   padding: 14px 18px 14px 14px;
   border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--stroke);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  box-shadow: var(--shadow-sm);
+  --squircle-r: var(--radius);
+  background: var(--card-bg);
+  border: 1px solid var(--card-stroke);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow: var(--shadow-sm), var(--card-inner);
   animation: rise .45s var(--ease) both;
+  transition: background .3s var(--ease), box-shadow .3s var(--ease), transform .3s var(--ease);
+}
+.card:hover {
+  background: var(--card-bg-hover);
+  box-shadow: var(--shadow-lg), var(--card-inner);
+  transform: translateY(-1px);
 }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
@@ -303,7 +345,19 @@ body {
   .actions .btn { flex: 1; }
 }
 
+/* 无 backdrop-filter 能力 → 退回实色，避免字糊在极光上 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .drop, .format, .card, .btn, .badge, .seg-btn.on { background: var(--surface-solid); }
+}
+
+@supports not (clip-path: path("M 0 0 Z")) {
+  .drop, .format, .card { clip-path: none; }
+}
+
 @media (prefers-reduced-transparency: reduce) {
-  .badge, .drop, .btn, .card { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface-solid); }
+  .badge, .drop, .format, .btn, .card, .seg-btn.on {
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+    background: var(--surface-solid);
+  }
   .aurora { display: none; }
 }

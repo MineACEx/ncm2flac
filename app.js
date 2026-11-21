@@ -15,8 +15,9 @@
   const items = [];
   let seq = 0;
 
-  /** 输出格式偏好：flac = 无损原样，mp3 = 转码 */
-  const settings = { format: 'flac', bitrate: 320 };
+  /** 输出格式偏好：flac = 无损原样，mp3 = 转码
+   *  quality 是 LAME 心理声学档位，0 = 最精细（最慢），9 = 最快。 */
+  const settings = { format: 'flac', bitrate: 320, quality: 3 };
 
   const fmtBytes = (n) => {
     if (!n && n !== 0) return '—';
@@ -37,6 +38,7 @@
   function newItem(file) {
     const el = document.createElement('article');
     el.className = 'card';
+    el.dataset.squircle = '';
     el.innerHTML =
       '<div class="cover ph">♪</div>' +
       '<div class="meta">' +
@@ -49,6 +51,7 @@
     el.querySelector('.title').textContent = stem(file.name);
     el.querySelector('.sub').textContent = fmtBytes(file.size);
     listEl.appendChild(el);
+    Squircle.init(el);
     return {
       id: ++seq,
       file,
@@ -101,7 +104,7 @@
         setState(item, '', '转码 MP3…');
         item.barFill.style.width = '62%';
         await new Promise((r) => requestAnimationFrame(r));
-        audio = await Mp3.encode(audio, { bitrate: settings.bitrate }, (p) => {
+        audio = await Mp3.encode(audio, { bitrate: settings.bitrate, quality: settings.quality }, (p) => {
           item.barFill.style.width = Math.max(62, Math.round(62 + p * 30)) + '%';
         });
         format = 'mp3';
@@ -131,7 +134,9 @@
         item.coverUrl = cu;
       }
       item.titleEl.textContent = title;
-      const label = format === 'flac' ? 'FLAC 无损' : 'MP3 ' + settings.bitrate + 'kbps';
+      const label = format === 'flac'
+        ? 'FLAC 无损'
+        : 'MP3 ' + settings.bitrate + 'kbps' + (settings.quality === 0 ? ' · 极限' : '');
       item.sizeText.textContent = [artist, album, fmtTime(m.durationMs), label]
         .filter(Boolean).join(' · ') + ' · ' + fmtBytes(out.length);
 
@@ -219,7 +224,9 @@
     }));
   if (bitrateSel) {
     bitrateSel.addEventListener('change', () => {
-      settings.bitrate = Number(bitrateSel.value) || 320;
+      const parts = String(bitrateSel.value).split(':');
+      settings.bitrate = Number(parts[0]) || 320;
+      settings.quality = parts.length > 1 ? Number(parts[1]) : 3;
       markStale();
     });
   }
@@ -272,4 +279,5 @@
   });
 
   syncFormatUI();
+  Squircle.init();
 })();

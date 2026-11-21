@@ -19,7 +19,7 @@
     <p class="lede">把网易云音乐的 <code>.ncm</code> 还原成原始无损流，或转成 MP3。选 FLAC 时不解码、不重采样、不二次压缩 —— 音频字节原样搬出来，音质没有任何损失。</p>
   </header>
 
-  <section id="drop" class="drop" tabindex="0" role="button" aria-label="选择或拖入 NCM 文件">
+  <section id="drop" class="drop" data-squircle tabindex="0" role="button" aria-label="选择或拖入 NCM 文件">
     <input id="file" type="file" accept=".ncm" multiple hidden />
     <div class="drop-inner">
       <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -31,7 +31,7 @@
     </div>
   </section>
 
-  <section class="format" id="formatBar">
+  <section class="format" id="formatBar" data-squircle>
     <div class="format-row">
       <span class="format-label">输出格式</span>
       <div class="seg" role="radiogroup" aria-label="输出格式">
@@ -45,11 +45,12 @@
     </div>
     <div class="format-row" id="bitrateWrap" hidden>
       <span class="format-label">码率</span>
-      <select id="bitrate" class="select" aria-label="MP3 码率">
-        <option value="128">128 kbps · 体积小</option>
-        <option value="192">192 kbps · 均衡</option>
-        <option value="256">256 kbps · 高音质</option>
-        <option value="320" selected>320 kbps · 最高</option>
+      <select id="bitrate" class="select" aria-label="MP3 音质">
+        <option value="128:3">128 kbps · 体积小</option>
+        <option value="192:3">192 kbps · 均衡</option>
+        <option value="256:3">256 kbps · 高音质</option>
+        <option value="320:3" selected>320 kbps · 标准</option>
+        <option value="320:0">320 kbps · 极限 / 慢</option>
       </select>
     </div>
   </section>
@@ -73,8 +74,9 @@
 
 <script src="./core.js"></script>
 <script src="./tag.js"></script>
-<script src="./lame.min.js"></script>
+<script src="./lame.js"></script>
 <script src="./mp3.js"></script>
+<script src="./squircle.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>

@@ -63,6 +63,11 @@ const Mp3 = (() => {
       } catch (e) { /* 保留原采样率 */ }
     }
 
+    // LAME quality：0 = 最精细（最慢），9 = 最快。320kbps 已是 MP3 规范上限，
+    // 想再提升只能靠更精细的心理声学搜索，所以这里暴露 quality 档。
+    const quality = (opts && typeof opts.quality === 'number') ? opts.quality : 3;
+    globalThis.__LAME_OPTS__ = { quality };
+
     const channels = Math.min(2, audio.numberOfChannels);
     const encoder = new lamejs.Mp3Encoder(channels, audio.sampleRate, bitrate);
     const left = floatToInt16(audio.getChannelData(0));
