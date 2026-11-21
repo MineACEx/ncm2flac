@@ -205,7 +205,10 @@
   /* 格式切换 */
   const segBtns = Array.from(document.querySelectorAll('[data-format]'));
   const bitrateWrap = document.getElementById('bitrateWrap');
-  const bitrateSel = document.getElementById('bitrate');
+  const bitrateDD = document.getElementById('bitrate');
+  const bitrateBtn = document.getElementById('bitrateBtn');
+  const bitrateMenu = document.getElementById('bitrateMenu');
+  const bitrateLabel = document.getElementById('bitrateLabel');
 
   function syncFormatUI() {
     segBtns.forEach((b) => {
@@ -222,13 +225,35 @@
       syncFormatUI();
       markStale();
     }));
-  if (bitrateSel) {
-    bitrateSel.addEventListener('change', () => {
-      const parts = String(bitrateSel.value).split(':');
+  /* 自绘下拉交互 */
+  if (bitrateDD && bitrateBtn && bitrateMenu) {
+    const closeDD = (open) => {
+      bitrateDD.classList.toggle('open', open);
+      bitrateBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      bitrateMenu.hidden = !open;
+    };
+
+    bitrateBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeDD(bitrateMenu.hidden);
+    });
+
+    bitrateMenu.addEventListener('click', (e) => {
+      const li = e.target.closest('li[data-value]');
+      if (!li) return;
+      const parts = li.dataset.value.split(':');
       settings.bitrate = Number(parts[0]) || 320;
       settings.quality = parts.length > 1 ? Number(parts[1]) : 3;
+
+      bitrateMenu.querySelectorAll('li').forEach((n) => n.removeAttribute('aria-selected'));
+      li.setAttribute('aria-selected', 'true');
+      bitrateLabel.textContent = li.textContent.replace(/\s+/g, ' ').trim().replace(/ (体积小|均衡|高音质|标准|极限 \/ 慢)$/, ' · $1');
+      closeDD(false);
       markStale();
     });
+
+    document.addEventListener('click', () => closeDD(false));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDD(false); });
   }
 
   /** 格式改动后，已完成的条目提示需重新转换 */
