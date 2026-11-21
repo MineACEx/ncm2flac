@@ -15,8 +15,18 @@
   --ok: #1d9f4f;
   --warn: #b25000;
   --err: #d70015;
-  --radius: 20px;
-  --squircle-r: 20px;
+  /* 圆角 token —— 全局四级，任何元素只能取这四个之一 */
+  --r-xl: 52px;   /* 大面板：拖拽区 + 格式栏，两块取同一值 */
+  --r-lg: 40px;   /* 内容卡片 */
+  --r-md: 24px;   /* 分段控件、封面 */
+  --r-sm: 14px;   /* 内嵌按钮 */
+  /* 圆角 clamp 上限 = 元素短边一半。format 栏高 77px → 实际最大 38.5px。
+     这是它看起来比上面那块"不够圆"的唯一原因，与取值无关。 */
+
+  --radius: var(--r-lg);
+  --radius-lg: var(--r-xl);
+  --radius-sm: var(--r-md);
+  --squircle-r: var(--r-lg);
   --shadow-sm: 0 1px 2px rgba(0,0,0,.04), 0 6px 18px rgba(0,0,0,.05);
   --shadow-lg: 0 2px 8px rgba(0,0,0,.05), 0 24px 60px rgba(0,0,0,.09);
 
@@ -66,9 +76,12 @@
 /* G2 连续曲率圆角：原生支持就用浏览器实现（零成本），
    否则由 squircle.js 用超椭圆 clip-path 兜底。
    border-radius 始终保留，作为两者都不可用时的回退。 */
-.drop, .format, .card, .btn, .badge, .seg, .seg-btn, .select {
-  corner-shape: squircle;          /* 老语法：只认 squircle 的版本会用这个（等于 n=2） */
-  corner-shape: superellipse(4);   /* n=4：曲率从直边 0 平滑升到峰值再归零，真 G2 */
+/* 所有带圆角的元素统一挂 squircle，一处定义、全局一致 */
+/* 与 _prank-bedwars 同一写法：corner-shape:squircle
+   （Chrome 里 squircle 关键字解析为 superellipse(2)，角部圆润，曲率仍连续） */
+.drop, .format, .card, .btn, .badge, .seg, .seg-btn, .select,
+.cover, .bar {
+  corner-shape: squircle;
 }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -161,8 +174,8 @@ body {
 /* Drop zone */
 .drop {
   position: relative;
-  border-radius: 26px;
-  --squircle-r: 26px;
+  border-radius: var(--radius-lg);
+  --squircle-r: var(--radius-lg);
   border: 1.5px dashed rgba(127, 127, 127, .35);
   background: var(--card-bg);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
@@ -190,8 +203,12 @@ body {
 .format {
   margin: 22px 0 0;
   padding: 16px 18px;
-  border-radius: var(--radius);
-  --squircle-r: var(--radius);
+  /* backdrop-filter 会建立层叠上下文，把内部菜单的 z-index 困住；
+     这里抬高层级，菜单才能盖住页脚 */
+  position: relative;
+  z-index: 10;
+  border-radius: var(--r-xl);   /* 与上面拖拽区同值 */
+  --squircle-r: var(--r-xl);
   background: var(--card-bg);
   border: 1px solid var(--card-stroke);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
@@ -206,13 +223,13 @@ body {
   display: inline-flex; padding: 3px; gap: 2px;
   background: rgba(127, 127, 127, .12);
   border: 1px solid var(--card-stroke);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   box-shadow: var(--card-inner);
 }
 .seg-btn {
   appearance: none; border: 0; background: transparent; cursor: pointer;
   font: 500 14px/1 inherit; font-family: inherit; color: var(--text-dim);
-  padding: 9px 16px; border-radius: 9px;
+  padding: 9px 16px; border-radius: calc(var(--radius-sm) - 4px);
   display: inline-flex; align-items: baseline; gap: 6px;
   transition: background .22s var(--ease), color .22s var(--ease), box-shadow .22s var(--ease);
 }
@@ -227,17 +244,77 @@ body {
 .seg-btn.on em { opacity: .55; }
 .seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.select {
+/* 自绘下拉：原生 select 的 option 列表由系统绘制，改不动，所以自己画 */
+.dd { position: relative; }
+
+.dd-btn {
   appearance: none;
+  display: inline-flex; align-items: center; gap: 8px;
   font: 500 13.5px/1 inherit; font-family: inherit; color: var(--text);
-  padding: 9px 32px 9px 13px;
-  border-radius: 10px;
-  border: 1px solid var(--stroke);
-  background-color: var(--surface-solid);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%2386868b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 11px center;
+  padding: 9px 13px 9px 15px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--card-stroke);
+  background: var(--card-bg-hover);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  box-shadow: var(--card-inner);
   cursor: pointer;
+  transition: background .2s var(--ease), border-color .2s var(--ease);
+  corner-shape: squircle;
 }
+.dd-btn:hover { background: var(--card-bg); border-color: var(--stroke-strong); }
+.dd-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dd-arrow { width: 10px; height: 6px; flex: none; }
+.dd-arrow path { fill: none; stroke: var(--text-faint); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.dd.open .dd-arrow { transform: rotate(180deg); }
+.dd-arrow { transition: transform .22s var(--ease); }
+
+.dd-menu {
+  position: absolute; z-index: 30;
+  top: calc(100% + 6px); left: 0;
+  /* 宽度随最长选项撑开，否则选中项加粗后文字会溢出蓝块 */
+  /* 宽度锁定为触发按钮宽度、左右边缘对齐，不再按内容撑开 */
+  left: 0;
+  right: 0;
+  width: auto;
+  min-width: 0;
+  margin: 0; padding: 7px; list-style: none;
+  display: flex; flex-direction: column; gap: 5px;   /* 项间留缝，悬停块与选中块才不会粘成一片 */
+  border-radius: 60px;   /* 下拉浮层 60px 大圆角 */
+  border: 1px solid var(--stroke);
+  background: var(--surface-solid);   /* 实色，不用半透明 */
+  box-shadow: var(--shadow-lg);
+  corner-shape: squircle;
+  corner-shape: superellipse(4);
+  animation: ddIn .16s var(--ease) both;
+}
+@keyframes ddIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.dd-menu li {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 60px;          /* 选中块同样 60px，指数恒为 n=4 */
+  corner-shape: squircle;
+  corner-shape: superellipse(4);
+  font-size: 13.5px; color: var(--text);
+  cursor: pointer; white-space: nowrap;
+  transition: background .14s var(--ease), box-shadow .14s var(--ease);
+  flex: none;
+}
+.dd-menu li em {
+  font-style: normal; font-size: 11.5px; color: var(--text-faint);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dd-menu li:hover { background: rgba(127, 127, 127, .13); color: var(--text); }
+/* 选中态用实心主色，与悬停的浅灰明显区分，两块相邻也不会糊成一片 */
+.dd-menu li[aria-selected="true"] {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 113, 227, .28);
+}
+.dd-menu li[aria-selected="true"]:hover { background: var(--accent); filter: brightness(1.06); }
+.dd-menu li[aria-selected="true"] em { color: #fff; opacity: .8; }
 .select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Toolbar */
@@ -258,8 +335,8 @@ body {
   color: var(--text);
   font: 500 14px/1 inherit;
   font-family: inherit;
-  padding: 10px 17px;
-  border-radius: 999px;
+  padding: 10px 20px;
+  border-radius: var(--r-md);
   cursor: pointer;
   transition: transform .18s var(--ease), background .18s var(--ease), opacity .18s var(--ease), border-color .18s var(--ease);
   white-space: nowrap;
@@ -298,7 +375,7 @@ body {
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 .cover {
-  width: 54px; height: 54px; border-radius: 12px; object-fit: cover;
+  width: 54px; height: 54px; border-radius: var(--radius-sm); object-fit: cover;
   background: linear-gradient(135deg, var(--bg-grad-a), var(--bg-grad-b));
   border: 1px solid var(--stroke);
   flex-shrink: 0;
