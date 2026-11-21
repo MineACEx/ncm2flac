@@ -6,7 +6,7 @@
 <title>NCM → FLAC / MP3 · 本地转换</title>
 <meta name="description" content="纯浏览器端网易云音乐 NCM 解密工具，输出原始无损 FLAC 或转码 MP3，文件不上传服务器。" />
 <meta name="color-scheme" content="light dark" />
-<link rel="stylesheet" href="./style.css" />
+<link rel="stylesheet" href="./style.css?v=20261121a" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
@@ -45,13 +45,19 @@
     </div>
     <div class="format-row" id="bitrateWrap" hidden>
       <span class="format-label">码率</span>
-      <select id="bitrate" class="select" aria-label="MP3 音质">
-        <option value="128:3">128 kbps · 体积小</option>
-        <option value="192:3">192 kbps · 均衡</option>
-        <option value="256:3">256 kbps · 高音质</option>
-        <option value="320:3" selected>320 kbps · 标准</option>
-        <option value="320:0">320 kbps · 极限 / 慢</option>
-      </select>
+      <div class="dd" id="bitrate">
+        <button type="button" class="dd-btn" id="bitrateBtn" aria-haspopup="listbox" aria-expanded="false">
+          <span id="bitrateLabel">320 kbps · 标准</span>
+          <svg class="dd-arrow" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+        </button>
+        <ul class="dd-menu" id="bitrateMenu" role="listbox" hidden>
+          <li role="option" data-value="128:3">128 kbps <em>体积小</em></li>
+          <li role="option" data-value="192:3">192 kbps <em>均衡</em></li>
+          <li role="option" data-value="256:3">256 kbps <em>高音质</em></li>
+          <li role="option" data-value="320:3" aria-selected="true">320 kbps <em>标准</em></li>
+          <li role="option" data-value="320:0">320 kbps <em>极限 / 慢</em></li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -72,11 +78,11 @@
   </footer>
 </main>
 
-<script src="./core.js"></script>
-<script src="./tag.js"></script>
-<script src="./lame.js"></script>
-<script src="./mp3.js"></script>
-<script src="./squircle.js"></script>
-<script src="./app.js"></script>
+<script src="./core.js?v=20261121a"></script>
+<script src="./tag.js?v=20261121a"></script>
+<script src="./lame.js?v=20261121a"></script>
+<script src="./mp3.js?v=20261121a"></script>
+<script src="./squircle.js?v=20261121a"></script>
+<script src="./app.js?v=20261121a"></script>
 </body>
 </html>
