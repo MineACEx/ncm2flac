@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>NCM → FLAC / MP3 · 本地转换</title>
+<meta name="description" content="纯浏览器端网易云音乐 NCM 解密工具，输出原始无损 FLAC 或转码 MP3，文件不上传服务器。" />
+<meta name="color-scheme" content="light dark" />
+<link rel="stylesheet" href="./style.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<main class="shell">
+  <header class="hero">
+    <div class="badge">100% 本地处理 · 不上传</div>
+    <h1>NCM <span class="arrow">→</span> FLAC<em>/ MP3</em></h1>
+    <p class="lede">把网易云音乐的 <code>.ncm</code> 还原成原始无损流，或转成 MP3。选 FLAC 时不解码、不重采样、不二次压缩 —— 音频字节原样搬出来，音质没有任何损失。</p>
+  </header>
+
+  <section id="drop" class="drop" tabindex="0" role="button" aria-label="选择或拖入 NCM 文件">
+    <input id="file" type="file" accept=".ncm" multiple hidden />
+    <div class="drop-inner">
+      <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" />
+        <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+      </svg>
+      <strong>拖入 .ncm 文件</strong>
+      <span>或点击选择 · 支持批量</span>
+    </div>
+  </section>
+
+  <section class="format" id="formatBar">
+    <div class="format-row">
+      <span class="format-label">输出格式</span>
+      <div class="seg" role="radiogroup" aria-label="输出格式">
+        <button type="button" class="seg-btn on" data-format="flac" role="radio" aria-checked="true">
+          FLAC <em>无损</em>
+        </button>
+        <button type="button" class="seg-btn" data-format="mp3" role="radio" aria-checked="false">
+          MP3 <em>有损</em>
+        </button>
+      </div>
+    </div>
+    <div class="format-row" id="bitrateWrap" hidden>
+      <span class="format-label">码率</span>
+      <select id="bitrate" class="select" aria-label="MP3 码率">
+        <option value="128">128 kbps · 体积小</option>
+        <option value="192">192 kbps · 均衡</option>
+        <option value="256">256 kbps · 高音质</option>
+        <option value="320" selected>320 kbps · 最高</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="toolbar" id="toolbar" hidden>
+    <div class="stat"><span id="statText">0 个文件</span></div>
+    <div class="actions">
+      <button id="convertAll" class="btn primary" type="button">开始转换</button>
+      <button id="downloadAll" class="btn" type="button" disabled>全部下载</button>
+      <button id="clear" class="btn ghost" type="button">清空</button>
+    </div>
+  </section>
+
+  <section id="list" class="list" aria-live="polite"></section>
+
+  <footer class="foot">
+    <p>算法：AES-128-ECB 解出密钥 → RC4 密钥流还原音频 → 元数据解密。整个流程跑在你的浏览器里，没有任何网络请求。</p>
+    <p class="sub">仅用于转换你已合法获取的本地文件。</p>
+  </footer>
+</main>
+
+<script src="./core.js"></script>
+<script src="./tag.js"></script>
+<script src="./lame.min.js"></script>
+<script src="./mp3.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
